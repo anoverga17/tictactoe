@@ -1,5 +1,67 @@
 from typing import List, Optional, Tuple, Set
-from main import winner, game_over
+
+def winner(board: List[List[Optional[str]]]) -> Optional[str]:
+    """
+    Returns the winner of the game, iff one exists.
+
+    Precondition: <board> is exactly a 3x3 2d list
+    """
+    for player in ["X", "O"]:
+        if _row_win(player, board) or _column_win(player, board) or \
+            _diagonal_win(player, board):
+            return player
+    return None
+
+def _row_win(player: str, board: List[List[Optional[str]]]) -> bool:
+    """
+    Returns True iff the player has won by row. False otherwise.
+
+    Precondition: <board> is exactly a 3x3 2d list
+                  <player> is either the string 'X' or 'O'
+    """
+    for row in board:
+        if row == [player] * len(board):
+            return True
+    return False
+
+def _column_win(player: str, board: List[List[Optional[str]]]) -> bool:
+    """
+    Returns True iff the player has won by column. False otherwise.
+
+    Precondition: <board> is exactly a 3x3 2d list
+                  <player> is either the string 'X' or 'O'
+    """
+    for i in range(len(board)):
+        col = [row[i] for row in board]
+        if col == [player] * len(board):
+            return True
+    return False
+
+def _diagonal_win(player: str, board: List[List[Optional[str]]]) -> bool:
+    """
+    Returns True iff the player has won diagonally. False otherwise.
+
+    Precondition: <board> is exactly a 3x3 2d list
+                  <player> is either the string 'X' or 'O'
+    """
+    lower_diag = [board[i][i] for i in range(len(board))]
+    upper_diag = [board[i][-1-i] for i in range(len(board))]
+    return lower_diag == [player] * len(board) or upper_diag == [player] * len(board)
+
+
+def game_over(board: List[List[Optional[str]]]) -> bool:
+    """
+    Returns True if game is over, False otherwise.
+
+    Precondition: <board> is exactly a 3x3 2d list
+    """
+    if winner(board) is not None:
+        return True
+    for row in board:
+        for cell in row:
+            if cell is None:
+                return False
+    return True
 
 class Player:
     """An abstract class for a player for this game of tic tac toe"""
@@ -175,13 +237,20 @@ class HumanPlayer(Player):
         """
         Prints board to console for player to see.
         """
-        print('=== Current Board ===\n')
-        print('|', self._board[0][0], '|', self._board[0][1], '|', self._board[0][2], '|')
-        print('-------------')
-        print('|', self._board[1][0], '|', self._board[1][1], '|', self._board[1][2], '|')
-        print('-------------')
-        print('|', self._board[2][0], '|', self._board[2][1], '|', self._board[2][2], '|')
-
+        flat_board = []
+        for row in self._board:
+            for item in row:
+                if item is None:
+                    flat_board.append(" ")
+                else:
+                    flat_board.append(item)
+        print('==== Current Board ====')
+        str_board = "\t-------------\n\t"
+        for i in range(len(flat_board)):
+            str_board += "| " + flat_board[i] + " "
+            if i % 3 == 2:
+                str_board += "|\n\t-------------\n\t"
+        print(str_board)
 
     def _choose_move(self) -> Optional[Tuple[int, int]]:
         """
@@ -191,12 +260,25 @@ class HumanPlayer(Player):
         if game_over(self._board):
             return None
 
-        move = input("Enter move to make: ")
-        while not move.isdigit() or 0 > int(move) or 9 <= int(move):
+        self._print_board()
+        move = input("Your turn! Enter move to make: ")
+        while not move.isdigit() or self._valid_num(int(move) - 1):
             print("Invalid Move! Try again")
             move = input("Enter move to make: ")
 
+        choice = int(move) - 1
+        return (choice // 3, choice % 3)
 
+    def _valid_num(self, move: int) -> bool:
+        """
+        Returns true iff <move> is a valid move that can be made on
+        the game board.
+        """
+        i, j = move // 3, move % 3
+        try:
+            return self._board[i][j] is not None
+        except(IndexError):
+            return False
 
     def get_child_class_name(self) -> str:
         """
