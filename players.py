@@ -34,10 +34,22 @@ class Player:
         #Make move
         return self._choose_move()
 
+    def get_player_piece(self) -> str:
+        """
+        Returns the piece representing this player on the board (i.e. X/0)
+        """
+        return self._player
+
     def _choose_move(self) -> Optional[Tuple[int, int]]:
         """
         Choose a valid  i, j index on the current board to make
         a move. Returns None if there are no possible moves.
+        """
+        raise NotImplementedError
+
+    def get_child_class_name(self) -> str:
+        """
+        Returns the child class of player this player is (i.e. AI or Human)
         """
         raise NotImplementedError
 
@@ -53,6 +65,7 @@ class TicTacToeAI(Player):
         Choose a valid  i, j index on the current board to make
         a move. Returns None if there are no possible moves.
         """
+        print("AI Turn...")
         if self._player == "X":
             return self._max_value(self._board)[1]
         else:
@@ -60,7 +73,7 @@ class TicTacToeAI(Player):
 
     def _moves(self, board: List[List[Optional[str]]]) -> Set[Tuple[int, int]]:
         """
-        Returns all possible moves (i, j) available on the board.
+        Returns all possible moves (i, j) available on the <board>.
 
         Precondition: <board> is exactly a 3x3 2d list
         """
@@ -77,7 +90,7 @@ class TicTacToeAI(Player):
     def _result(self, board: List[List[Optional[str]]], move: Tuple[int, int]) \
             -> List[List[Optional[str]]]:
         """
-        Returns the board that results from making move (i, j) on the board.
+        Returns the board that results from making the <move> on the <board>.
 
         Precondition: <board> is exactly a 3x3 2d list.
                       <move> contains only the ints 0, 1, or 2.
@@ -145,4 +158,49 @@ class TicTacToeAI(Player):
         optimal_score = min(moves)
 
         return (optimal_score, moves[optimal_score])
+
+    def get_child_class_name(self) -> str:
+        """
+        Returns the child class of player this player is (i.e. AI or Human)
+        """
+        return "Artificial Intelligence"
+
+class HumanPlayer(Player):
+    """A Human player"""
+
+    _player: str
+    _board: List[List[Optional[str]]]
+
+    def _print_board(self) -> None:
+        """
+        Prints board to console for player to see.
+        """
+        print('=== Current Board ===\n')
+        print('|', self._board[0][0], '|', self._board[0][1], '|', self._board[0][2], '|')
+        print('-------------')
+        print('|', self._board[1][0], '|', self._board[1][1], '|', self._board[1][2], '|')
+        print('-------------')
+        print('|', self._board[2][0], '|', self._board[2][1], '|', self._board[2][2], '|')
+
+
+    def _choose_move(self) -> Optional[Tuple[int, int]]:
+        """
+        Choose a valid  i, j index on the current board to make
+        a move. Returns None if there are no possible moves.
+        """
+        if game_over(self._board):
+            return None
+
+        move = input("Enter move to make: ")
+        while not move.isdigit() or 0 > int(move) or 9 <= int(move):
+            print("Invalid Move! Try again")
+            move = input("Enter move to make: ")
+
+
+
+    def get_child_class_name(self) -> str:
+        """
+        Returns the child class of player this player is (i.e. AI or Human)
+        """
+        return "Human (Yes, you!)"
 
